@@ -94,24 +94,24 @@ delete_query_sub.set_upstream(bash_op['contacts'])
 table_name    = "sfdc.summary"
 insert_fields = "rollup_name, rollup_value, date, mailing_country, email_language, email_format"
 select_fields = "snapshot_date, MailingCountry, Email_Language__c, Email_Format__c"
-addtl_where   = "AND Double_Opt_In__c = TRUE AND HasOptedOutOfEmail = FALSE AND Subscriber__c = TRUE"
+addtl_where   = "AND Double_Opt_In__c = TRUE AND HasOptedOutOfEmail = FALSE"
 
 summary_subscribe_queries = {
   'unique-contacts': "INSERT INTO %s (%s) SELECT 'Unique Contacts', COUNT(*), %s FROM sfdc.contacts_vw WHERE snapshot_date=CURRENT_DATE() GROUP BY %s" % (table_name, insert_fields, select_fields, select_fields),
 
-  'opted-id': "INSERT INTO %s (%s) SELECT 'Opted In', COUNT(*), %s FROM sfdc.contacts_vw WHERE snapshot_date=CURRENT_DATE() %s GROUP BY %s" % (table_name, insert_fields, select_fields, addtl_where, select_fields),
+  'opted-in': "INSERT INTO %s (%s) SELECT 'Opted In', COUNT(*), %s FROM sfdc.contacts_vw WHERE snapshot_date=CURRENT_DATE() %s AND Subscriber__c = TRUE GROUP BY %s" % (table_name, insert_fields, select_fields, addtl_where, select_fields),
 
-  'opted-out': "INSERT INTO %s (%s) SELECT 'Opted Out', COUNT(*), %s FROM sfdc.contacts_vw WHERE snapshot_date=CURRENT_DATE() %s GROUP BY %s" % (table_name, insert_fields, select_fields, addtl_where, select_fields),
+  'opted-out': "INSERT INTO %s (%s) SELECT 'Opted Out', COUNT(*), %s FROM sfdc.contacts_vw WHERE snapshot_date=CURRENT_DATE() AND Double_Opt_In__c = FALSE AND HasOptedOutOfEmail = TRUE AND Subscriber__c = FALSE GROUP BY %s" % (table_name, insert_fields, select_fields, addtl_where, select_fields),
 
-  'moz-sub': "INSERT INTO %s (%s) SELECT 'Mozilla Subscriber', COUNT(*), %s FROM sfdc.contacts_vw WHERE snapshot_date=CURRENT_DATE() %s GROUP BY %s" % (table_name, insert_fields, select_fields, addtl_where, select_fields),
+  'moz-sub': "INSERT INTO %s (%s) SELECT 'Mozilla Subscriber', COUNT(*), %s FROM sfdc.contacts_vw WHERE snapshot_date=CURRENT_DATE() %s AND moz_subscriber=TRUE GROUP BY %s" % (table_name, insert_fields, select_fields, addtl_where, select_fields),
 
-  'dev-sub': "INSERT INTO %s (%s) SELECT 'Developer Subscriber', COUNT(*), %s FROM sfdc.contacts_vw WHERE snapshot_date=CURRENT_DATE() %s GROUP BY %s" % (table_name, insert_fields, select_fields, addtl_where, select_fields),
+  'dev-sub': "INSERT INTO %s (%s) SELECT 'Developer Subscriber', COUNT(*), %s FROM sfdc.contacts_vw WHERE snapshot_date=CURRENT_DATE() %s AND dev_subscriber=TRUE GROUP BY %s" % (table_name, insert_fields, select_fields, addtl_where, select_fields),
 
-  'fx-sub': "INSERT INTO %s (%s) SELECT 'Firefox Subscriber', COUNT(*), %s FROM sfdc.contacts_vw WHERE snapshot_date=CURRENT_DATE() %s GROUP BY %s" % (table_name, insert_fields, select_fields, addtl_where, select_fields),
+  'fx-sub': "INSERT INTO %s (%s) SELECT 'Firefox Subscriber', COUNT(*), %s FROM sfdc.contacts_vw WHERE snapshot_date=CURRENT_DATE() %s AND fx_subscriber=TRUE GROUP BY %s" % (table_name, insert_fields, select_fields, addtl_where, select_fields),
 
-  'other-sub': "INSERT INTO %s (%s) SELECT 'Other Subscriber', COUNT(*), %s FROM sfdc.contacts_vw WHERE snapshot_date=CURRENT_DATE() %s GROUP BY %s" % (table_name, insert_fields, select_fields, addtl_where, select_fields),
+  'other-sub': "INSERT INTO %s (%s) SELECT 'Other Subscriber', COUNT(*), %s FROM sfdc.contacts_vw WHERE snapshot_date=CURRENT_DATE() %s AND other_subscriber=TRUE GROUP BY %s" % (table_name, insert_fields, select_fields, addtl_where, select_fields),
 
-  'moz-labs-sub': "INSERT INTO %s (%s) SELECT 'Mozilla Labs Subscriber', COUNT(*), %s FROM sfdc.contacts_vw WHERE snapshot_date=CURRENT_DATE() %s GROUP BY %s" % (table_name, insert_fields, select_fields, addtl_where, select_fields),
+  'moz-labs-sub': "INSERT INTO %s (%s) SELECT 'Mozilla Labs Subscriber', COUNT(*), %s FROM sfdc.contacts_vw WHERE snapshot_date=CURRENT_DATE() %s AND moz_labs_subscriber=TRUE GROUP BY %s" % (table_name, insert_fields, select_fields, addtl_where, select_fields),
 }
 
 select_fields = "DATE(contact_history_vw.CreatedDate), MailingCountry, Email_Language__c, Email_Format__c"
