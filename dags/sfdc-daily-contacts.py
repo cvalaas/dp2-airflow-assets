@@ -94,7 +94,7 @@ delete_query_sub.set_upstream(bash_op['contacts'])
 table_name    = "sfdc.summary"
 insert_fields = "rollup_name, rollup_value, date, mailing_country, email_language, email_format"
 select_fields = "snapshot_date, MailingCountry, Email_Language__c, Email_Format__c"
-addtl_where   = "AND Double_Opt_In__c = TRUE AND HasOptedOutOfEmail = FALSE"
+addtl_where   = "AND Double_Opt_In__c = TRUE AND HasOptedOutOfEmail = FALSE AND Subscriber__c = TRUE"
 
 summary_subscribe_queries = {
   'unique-contacts': "INSERT INTO %s (%s) SELECT 'Unique Contacts', COUNT(*), %s FROM sfdc.contacts_vw WHERE snapshot_date=CURRENT_DATE() GROUP BY %s" % (table_name, insert_fields, select_fields, select_fields),
