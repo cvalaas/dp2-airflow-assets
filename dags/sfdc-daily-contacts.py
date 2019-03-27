@@ -101,7 +101,7 @@ summary_subscribe_queries = {
 
   'opted-in': "INSERT INTO %s (%s) SELECT 'Opted In', COUNT(*), %s FROM sfdc.contacts_vw WHERE snapshot_date=CURRENT_DATE() %s AND Subscriber__c = TRUE GROUP BY %s" % (table_name, insert_fields, select_fields, addtl_where, select_fields),
 
-  'opted-out': "INSERT INTO %s (%s) SELECT 'Opted Out', COUNT(*), %s FROM sfdc.contacts_vw WHERE snapshot_date=CURRENT_DATE() AND Double_Opt_In__c = FALSE AND HasOptedOutOfEmail = TRUE AND Subscriber__c = FALSE GROUP BY %s" % (table_name, insert_fields, select_fields, addtl_where, select_fields),
+  'opted-out': "INSERT INTO %s (%s) SELECT 'Opted Out', COUNT(*), %s FROM sfdc.contacts_vw WHERE snapshot_date=CURRENT_DATE() AND (Double_Opt_In__c = FALSE OR HasOptedOutOfEmail = TRUE OR Subscriber__c = FALSE) GROUP BY %s" % (table_name, insert_fields, select_fields, addtl_where, select_fields),
 
   'moz-sub': "INSERT INTO %s (%s) SELECT 'Mozilla Subscriber', COUNT(*), %s FROM sfdc.contacts_vw WHERE snapshot_date=CURRENT_DATE() %s AND moz_subscriber=TRUE GROUP BY %s" % (table_name, insert_fields, select_fields, addtl_where, select_fields),
 
