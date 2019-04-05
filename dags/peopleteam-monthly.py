@@ -51,7 +51,7 @@ default_args = {
           'retries': 5,
           'retry_delay': datetime.timedelta(minutes=5),
           #'end_date': datetime.datetime(2016,10,1),
-          'start_date': datetime.datetime(2016,9,1)
+          'start_date': datetime.datetime(2019,3,1)
           # TODO: email stuff
           #'catchup': False,
 }
