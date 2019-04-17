@@ -5,9 +5,15 @@ from airflow.contrib.kubernetes import pod
 from airflow.contrib.kubernetes import secret, volume, volume_mount
 from airflow.contrib.operators import kubernetes_pod_operator
 from airflow.operators.bash_operator import BashOperator
+from airflow.models import Variable
+
+#PROJECT=os.environ.get('gcp_project')
+
+PROJECT=Variable.get('gcp_project')
+LATEST_TAG=Variable.get('latest_di_image_tag')
 
 # TODO: put the latest SHA hash in a bucket somewhere and pull from there
-IMAGE='gcr.io/imposing-union-227917/data-integrations:20190307'
+IMAGE='gcr.io/' + PROJECT + '/data-integrations:' + LATEST_TAG
 
 sf_secret = secret.Secret( deploy_type='volume',
     deploy_target='/config',
