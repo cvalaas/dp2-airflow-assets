@@ -9,9 +9,15 @@ from airflow.contrib.kubernetes import pod
 from airflow.contrib.kubernetes import secret, volume, volume_mount
 from airflow.contrib.operators import kubernetes_pod_operator
 from airflow.operators.bash_operator import BashOperator
+from airflow.models import Variable
+
+#PROJECT=os.environ.get('gcp_project')
+
+PROJECT=Variable.get('gcp_project')
+LATEST_TAG=Variable.get('latest_di_image_tag')
 
 # TODO: put the latest SHA hash in a bucket somewhere and pull from there
-IMAGE='gcr.io/imposing-union-227917/data-integrations:20190307'
+IMAGE='gcr.io/' + PROJECT + '/data-integrations:' + LATEST_TAG
 
 wd_u_secret = secret.Secret(
     deploy_type='env',
@@ -23,25 +29,6 @@ wd_p_secret = secret.Secret(
     deploy_target='HR_DASHBOARD_WORKDAY_PASSWORD',
     secret='di-secrets',
     key='HR_DASHBOARD_WORKDAY_PASSWORD')
-
-# consider putting *all* the variables (urls, etc) in "secrets" and get rid of configmap altogether
-config_volume = volume.Volume(
-            name = 'configs',
-            configs = {
-              'configMap': {
-                'name': 'data-integrations-dev',
-                'items': [
-                  { 'key': 'secrets_workday.py', 'path': 'secrets_workday.py', },
-                  { 'key': 'secrets_util.py',     'path': 'secrets_util.py',     },
-                ],
-              },
-            }
-          )
-config_mount = volume_mount.VolumeMount(
-    name = 'configs',
-    mount_path = '/configs',
-    sub_path=None,
-    read_only = True)
 
 # Having this dynamic is not a good idea because retrying subtasks
 # at a later date will fail
@@ -77,8 +64,6 @@ peopleteam_fetch = kubernetes_pod_operator.KubernetesPodOperator(
         # TODO: move the copying stuff to the di module itself
         cmds=['sh', '-c', '/usr/local/bin/get_people_dashboard_data.py --monthly -o /tmp/ --date {{ macros.ds_add(next_execution_date.strftime("%Y-%m-%d"), -1) }} && gsutil cp /tmp/*_{{ macros.ds_add(next_execution_date.strftime("%Y-%m-%d"), -1) }}.csv gs://moz-it-data-dp2-incoming-dev/peopleteam_dashboard_monthly/pull_date_' + pull_date + '/'],
         #cmds=['sh', '-c', 'sleep 7200'],
-        volumes=[config_volume],
-        volume_mounts=[config_mount],
         dag=dag)
 
 peopleteam_hires_load = BashOperator(
