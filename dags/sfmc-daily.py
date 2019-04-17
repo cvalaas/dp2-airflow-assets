@@ -70,8 +70,6 @@ sf_ftp_fetch = kubernetes_pod_operator.KubernetesPodOperator(
         secrets=[sf_ftp_user, sf_ftp_pass],
         cmds=['sh', '-c', '/usr/local/bin/salesforce_ftp.py --dest-dir /tmp/ --date {{ ds }} && gsutil cp -r /tmp/{{ ds }} gs://moz-it-data-dp2-incoming-dev/sfmc/'],
         #cmds=['sh', '-c', 'sleep 360'],
-        volumes=[config_volume],
-        volume_mounts=[config_mount],
         dag=dag)
 
 cleanup_op = BashOperator(
