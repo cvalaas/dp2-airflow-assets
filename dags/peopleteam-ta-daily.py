@@ -47,7 +47,7 @@ default_args = {
 
 dag = DAG(dag_id='peopleteam-ta-daily',
           default_args=default_args,
-          schedule_interval='0 16 * * *'
+          schedule_interval='1 0 * * *'
 )
 
 peopleteam_fetch = kubernetes_pod_operator.KubernetesPodOperator(
