@@ -12,10 +12,12 @@ from airflow.contrib.operators import kubernetes_pod_operator
 from airflow.operators.bash_operator import BashOperator
 from airflow.models import Variable
 
-#PROJECT=os.environ.get('gcp_project')
 
-PROJECT=Variable.get('gcp_project')
-LATEST_TAG=Variable.get('latest_di_image_tag')
+PROJECT          = os.environ.get('gcp_project')
+LATEST_TAG       = Variable.get('latest_di_image_tag')
+INCOMING_BUCKET  = PROJECT + '-data-incoming'
+SPARKJOBS_BUCKET = PROJECT + '-data-sparkjobs'
+OUTPUT_BUCKET    = PROJECT + '-data-peopleteam'
 
 # TODO: put the latest SHA hash in a bucket somewhere and pull from there
 IMAGE='gcr.io/' + PROJECT + '/data-integrations:' + LATEST_TAG
@@ -40,7 +42,7 @@ default_args = {
           'retries': 5,
           'retry_delay': datetime.timedelta(minutes=5),
           #'end_date': datetime.datetime(2016,10,1),
-          'start_date': datetime.datetime(2019,4,15)
+          'start_date': datetime.datetime(2019,4,17)
           # TODO: email stuff
           #'catchup': False,
 }
@@ -57,7 +59,7 @@ peopleteam_fetch = kubernetes_pod_operator.KubernetesPodOperator(
         image=IMAGE,
         secrets=[wd_u_secret,wd_p_secret],
         # TODO: move the copying stuff to the di module itself
-        cmds=['sh', '-c', '/usr/local/bin/get_people_dashboard_data.py --ta-dashboard -o /tmp/ --date {{ ds }} && gsutil cp /tmp/*_{{ ds }}.csv gs://' + PROJECT + '-data-incoming/ta_dashboard/pull_date_' + pull_date + '/'],
+        cmds=['sh', '-c', '/usr/local/bin/get_people_dashboard_data.py --ta-dashboard -o /tmp/ --date {{ ds }} && gsutil cp /tmp/*_{{ ds }}.csv gs://' + INCOMING_BUCKET + '/ta_dashboard/pull_date_' + pull_date + '/'],
         #cmds=['sh', '-c', 'sleep 7200'],
         dag=dag)
 
@@ -67,7 +69,7 @@ peopleteam_hires_load = BashOperator(
         # TODO: figure out a better way to pass in cluster name (airflow variables? does that help?)
         # maybe make a dependencies dir under "dags" and import a module that is just vars? see:
         #    https://cloud.google.com/composer/docs/how-to/using/installing-python-dependencies
-        bash_command='bq load --source_format CSV --autodetect --skip_leading_rows=1 --replace workday.workday_ta_hires gs://' + PROJECT + '-data-incoming/ta_dashboard/pull_date_' + pull_date + '/hires_{{ ds }}.csv',
+        bash_command='bq load --source_format CSV --autodetect --skip_leading_rows=1 --replace workday.workday_ta_hires gs://' + INCOMING_BUCKET + '/ta_dashboard/pull_date_' + pull_date + '/hires_{{ ds }}.csv',
         #bash_command='gcloud dataproc jobs submit pyspark gs://moz-it-data-dp2-sparkjobs-dev/etl/peopleteam_loader.py --cluster=etl-cluster --region us-central1 -- gs://moz-it-data-dp2-incoming-dev/ta_dashboard/pull_date_' + pull_date + '/hires_{{ ds }}.csv gs://moz-it-data-dp2-peopleteam-dev/ta_dashabord',
         dag=dag)
 
